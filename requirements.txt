@@ -1,0 +1,8 @@
+numpy==1.22.2
+Flask==2.2.0
+urllib3==1.26.12
+xds-protos==0.0.11
+google-api-python-client==2.86.0
+google-auth-oauthlib
+google-auth-httplib2
+google-auth

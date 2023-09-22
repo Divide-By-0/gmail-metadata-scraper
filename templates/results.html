@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gmail Add-on - Results</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1>Results</h1>
+        <div class="card">
+            <div class="card-header">Longest From Email Address</div>
+            <div class="card-body">
+                <p>{{ longest_from_address }}</p>
+            </div>
+        </div>
+        <div class="card mt-4">
+            <div class="card-header">Longest To Email Address</div>
+            <div class="card-body">
+                <p>{{ longest_to_address }}</p>
+            </div>
+        </div>
+        <div class="card mt-4">
+            <div class="card-header">Longest Message ID</div>
+            <div class="card-body">
+                <p>{{ longest_message_id }}</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
