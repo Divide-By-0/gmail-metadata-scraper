@@ -1,16 +1,21 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Gmail Add-on</title>
+    <title>Gmail Analyzer for ZK Email</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
     <div class="container mt-4">
-        <h1>Gmail Add-on</h1>
+        <h1>Gmail Analyzer for ZK Email</h1>
         <a href="/authorize">Authorize</a>
         <form action="/results" method="get">
             <div class="form-group">
                 <button type="submit" class="btn btn-primary">Retrieve Results</button>
+            </div>
+        </form>
+        <form action="/get_selectors" method="get">
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Retrieve Domains + Selectors</button>
             </div>
         </form>
     </div>

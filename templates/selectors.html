@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gmail Analyzer for ZK Email - Selectors</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script>
+        function copyToClipboard(text) {
+            var dummy = document.createElement("textarea");
+            document.body.appendChild(dummy);
+            dummy.value = text;
+            dummy.select();
+            document.execCommand("copy");
+            document.body.removeChild(dummy);
+        }
+    </script>
+</head>
+<body>
+    <div class="container mt-4">
+        <h1>Selectors</h1>
+        <button onclick="copyToClipboard(JSON.stringify({ results }))">Copy All</button>
+        {% for result in results %}
+        <div class="card">
+            <div class="card-header">{{ result[1] }}</div>
+            <div class="card-body">
+                <p>Selector: {{ result[0] }}</p>
+                <button onclick="copyToClipboard('{{ result[0] }}: {{ result[1] }}')">Copy</button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>

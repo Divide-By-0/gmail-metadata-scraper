@@ -8,6 +8,7 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import Flow
 from pickle import dumps, loads
 from dotenv import load_dotenv
+import sqlite3
 
 load_dotenv()
 
@@ -44,14 +45,31 @@ def get_dkim_domains_with_more_than_one_dkim_selector(emails):
     dkim_domains = {} # Map of domains to selectors
     for email in emails:
         if email['dkimDomain'] in dkim_domains:
-            if(email['dkimSelector'] not in dkim_domains[email['dkimDomain']]):
+            if(email['dkimSelector'] not in dkim_domains[email['dkimDomain']]) and (len(email['dkimSelector']) > 0):
                 dkim_domains[email['dkimDomain']].append(email['dkimSelector'])
         else:
             dkim_domains[email['dkimDomain']] = [email['dkimSelector']]
     domains_to_delete = [domain for domain in dkim_domains if len(dkim_domains[domain]) < 2]
     for domain in domains_to_delete:
         del dkim_domains[domain]
-    return dkim_domains
+    # For each domain with more than one selector, print all the dates from any emails with those selectors
+    for domain, selectors in dkim_domains.items():
+        for email in emails:
+            if email['dkimDomain'] == domain and email['dkimSelector'] in selectors:
+                dkim_domains[domain].append(email['dkimSelector'] + " : " + email['timestamp'])
+    return dkim_domains    
+
+def make_or_get_db():
+    # Create DB
+    conn = sqlite3.connect('emails.db')
+    c = conn.cursor()
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS emails
+        (id text, threadId text, snippet text, subject text, from_email text, to_email text, 
+        dkimSelector text, messageId text, domain text, dkimDomain text, timestamp text)
+    ''')
+    conn.commit()
+    return c, conn
 
 # Function to retrieve the last N emails
 def retrieve_emails(limit, pageToken=None):
@@ -60,6 +78,8 @@ def retrieve_emails(limit, pageToken=None):
     service = build('gmail', 'v1', credentials=credentials)
     results: dict = service.users().messages().list(userId='me', maxResults=limit, pageToken=pageToken).execute()
     emails: list = []
+    print(f"Retrieving {len(results['messages'])} emails out of {limit} remaining")
+    c, conn = make_or_get_db()
     for message in results['messages']:
         msg_id = message['id']
         email_data = service.users().messages().get(userId='me', id=msg_id).execute()
@@ -68,8 +88,7 @@ def retrieve_emails(limit, pageToken=None):
         # For example, snippet and headers:
         snippet = email_data.get('snippet')
         headers = email_data.get('payload', {}).get('headers', [])
-        print(headers)
-        subject, from_email, dkim_selector, message_id, domain = '', '', '', '', ''
+        subject, from_email, dkim_selector, message_id, domain, dkim_domain = '', '', '', '', '', ''
         to_email = ''
         for header in headers:
             if header['name'] == 'Subject':
@@ -79,7 +98,6 @@ def retrieve_emails(limit, pageToken=None):
                     from_email = header['value'].split('<')[1].rstrip('>')
                 except IndexError:
                     from_email = header['value']
-                print(from_email)
                 domain = from_email.split('@')[1]
             elif header['name'] == 'To':
                 try:
@@ -88,9 +106,14 @@ def retrieve_emails(limit, pageToken=None):
                     to_email = header['value']
             elif header['name'] == 'DKIM-Signature':
                 dkim_selector = header['value'].split('s=')[1].split(';')[0]
+                if(len(dkim_selector) == 0):
+                    print("No selector found in ", headers)
+                    dkim_selector = 'None'
                 dkim_domain = header['value'].split('d=')[1].split(';')[0]
             elif header['name'] == 'Message-ID':
                 message_id = header['value']
+            elif header['name'] == 'Date':
+                timestamp = header['value']
 
         emails.append({
             'id': msg_id,
@@ -102,11 +125,20 @@ def retrieve_emails(limit, pageToken=None):
             'dkimSelector': dkim_selector,
             'messageId': message_id,
             'domain': domain,
-            'dkimDomain': dkim_domain
+            'dkimDomain': dkim_domain,
+            'timestamp': timestamp
         })  
-    print(emails)
-    for email in emails:
-        print(f"Selector: {email['dkimSelector']}, Domain: {email['domain']}, dkimDomains: {email['dkimDomain']}")
+        
+        # Add the email to the database
+        c.execute('''
+            INSERT INTO emails VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (msg_id, message['threadId'], snippet, subject, from_email, to_email, dkim_selector, message_id, domain, dkim_domain, timestamp))
+    conn.commit()
+    conn.close()
+
+    # for email in emails:
+    #     print(f"Selector: {email['dkimSelector']}, Domain: {email['domain']}, dkimDomains: {email['dkimDomain']}")
+    
     if 'nextPageToken' in results:
         limit -= len(results['messages'])
         if(limit > 0):
@@ -181,9 +213,9 @@ def home():
 # Route for retrieving and displaying the results
 @app.route('/results')
 def results():
-    limit = 500  # Number of emails to retrieve
+    limit = 100  # Number of emails to retrieve
     emails = retrieve_emails(limit)
-    print("Emails: ", emails);
+
     longest_from_address = get_longest_from_address(emails)
     longest_from_address = f"{longest_from_address} (Length: {len(longest_from_address)})"
     longest_to_address = get_longest_to_address(emails)
@@ -197,6 +229,19 @@ def results():
                            longest_to_address=longest_to_address, 
                            longest_message_id=longest_message_id, 
                            multi_selectors=multi_selectors)
+    
+# Route for retrieving and displaying the results
+@app.route('/get_selectors')
+def get_selectors():
+    c, conn = make_or_get_db()
+    c.execute('''
+        SELECT dkimSelector, dkimDomain FROM emails
+    ''')
+    results = c.fetchall()
+    conn.close()
+    # Remove duplicates from results
+    results = list(set(results))
+    return render_template('selectors.html', results=results)
 
 if __name__ == '__main__':
     app.run('127.0.0.1', debug=True)
