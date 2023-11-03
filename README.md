@@ -11,6 +11,6 @@ python3 main.py
 
 Get the env file from me and rename it to `.env`.
 
-Then sign in, and request results. It'll take a minute or two. Then the show selectors page will continually collect all your selectors in a local db. It has a copy all that doesn't work, just manually copy and paste it to me.
+Then go to `127.0.0.1` in your browser. Click "Authorize" first and sign in. Then request results. It'll take a minute or two. Then click "Retrieve Domains + Selectors", and the show selectors page will show all of the domains and selectors collected in the local db form all of your past runs of the script. The "Copy All" button doesn't work, just manually copy and paste the results to me.
 
 Thanks to [adriptech](https://replit.com/@AdripTech/gmail-Addon) for the initial repository template.
