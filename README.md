@@ -9,6 +9,8 @@ pip3 install -r requirements.txt
 python3 main.py
 ```
 
-Then sign in, and request results. It'll take a minute or two. Then the show selectors page will continually collect all your selectors in a db.
+Get the env file from me and rename it to `.env`.
+
+Then sign in, and request results. It'll take a minute or two. Then the show selectors page will continually collect all your selectors in a local db. It has a copy all that doesn't work, just manually copy and paste it to me.
 
 Thanks to [adriptech](https://replit.com/@AdripTech/gmail-Addon) for the initial repository template.
