@@ -213,7 +213,7 @@ def home():
 # Route for retrieving and displaying the results
 @app.route('/results')
 def results():
-    limit = 100  # Number of emails to retrieve
+    limit = 2000  # Number of emails to retrieve
     emails = retrieve_emails(limit)
 
     longest_from_address = get_longest_from_address(emails)
@@ -245,4 +245,3 @@ def get_selectors():
 
 if __name__ == '__main__':
     app.run('127.0.0.1', debug=True)
-    
