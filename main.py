@@ -213,7 +213,7 @@ def home():
 # Route for retrieving and displaying the results
 @app.route('/results')
 def results():
-    limit = 2000  # Number of emails to retrieve
+    limit = 10000  # Number of emails to retrieve
     emails = retrieve_emails(limit)
 
     longest_from_address = get_longest_from_address(emails)
@@ -237,11 +237,29 @@ def get_selectors():
     c.execute('''
         SELECT dkimSelector, dkimDomain FROM emails
     ''')
-    results = c.fetchall()
+    raw_results = list(set(c.fetchall()))
+    print(raw_results[0])
     conn.close()
-    # Remove duplicates from results
-    results = list(set(results))
-    return render_template('selectors.html', results=results)
+    
+    # Group results by selectors
+    grouped_by_selectors = {}
+    grouped_by_domains = {}
+    
+    for selector_domain in raw_results:
+        selector, domain = selector_domain
+        if selector not in grouped_by_selectors:
+            grouped_by_selectors[selector] = []
+        grouped_by_selectors[selector].append(domain)
+        
+        if domain not in grouped_by_domains:
+            grouped_by_domains[domain] = []
+        grouped_by_domains[domain].append(selector)
+    
+    # Sort by number of entries
+    grouped_by_selectors = {k: v for k, v in sorted(grouped_by_selectors.items(), key=lambda item: len(item[1]), reverse=True)}
+    grouped_by_domains = {k: v for k, v in sorted(grouped_by_domains.items(), key=lambda item: len(item[1]), reverse=True)}
+    
+    return render_template('selectors.html', selectors=grouped_by_selectors, domains=grouped_by_domains)
 
 if __name__ == '__main__':
     app.run('127.0.0.1', debug=True)

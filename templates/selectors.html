@@ -13,20 +13,47 @@
             document.body.removeChild(dummy);
         }
     </script>
+    <script>
+        function toggleView() {
+            var selectorsView = document.getElementById('selectorsView');
+            var domainsView = document.getElementById('domainsView');
+            if (selectorsView.style.display === "none") {
+                selectorsView.style.display = "block";
+                domainsView.style.display = "none";
+            } else {
+                selectorsView.style.display = "none";
+                domainsView.style.display = "block";
+            }
+        }
+    </script>
 </head>
 <body>
     <div class="container mt-4">
         <h1>Selectors</h1>
+        <button id="toggleButton" onclick="toggleView()">Toggle Grouping (By Selectors or by Domains)</button>
         <button onclick="copyToClipboard(JSON.stringify({ results }))">Copy All</button>
-        {% for result in results %}
-        <div class="card">
-            <div class="card-header">{{ result[1] }}</div>
-            <div class="card-body">
-                <p>Selector: {{ result[0] }}</p>
-                <button onclick="copyToClipboard('{{ result[0] }}: {{ result[1] }}')">Copy</button>
+        <div id="selectorsView">
+            {% for result in selectors %}
+            <div class="card">
+                <div class="card-header">{{ result }}</div>
+                <div class="card-body">
+                    <p>Selector: {{ selectors[result] }}</p>
+                    <button onclick="copyToClipboard('{{ result }}: {{ selectors[result] }}')">Copy</button>
+                </div>
             </div>
+            {% endfor %}
         </div>
-        {% endfor %}
+        <div id="domainsView" style="display: none;">
+            {% for result in domains %}
+            <div class="card">
+                <div class="card-header">{{ result }}</div>
+                <div class="card-body">
+                    <p>Domain: {{ domains[result] }}</p>
+                    <button onclick="copyToClipboard('{{ result }}: {{ domains[result] }}')">Copy</button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
     </div>
 </body>
 </html>
