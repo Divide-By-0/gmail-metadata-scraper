@@ -229,7 +229,14 @@ def results():
                            longest_to_address=longest_to_address, 
                            longest_message_id=longest_message_id, 
                            multi_selectors=multi_selectors)
-    
+# convert {k1: [v1, v2, …], k2: [v3, v4, …]} to TSV with one line per key-value pair
+def dict_to_tsv(dict):
+    res = ""
+    for k, vArr in dict.items():
+        for v in vArr:
+            res += f'{k}\t{v}\n'
+    return res
+
 # Route for retrieving and displaying the results
 @app.route('/get_selectors')
 def get_selectors():
@@ -247,6 +254,8 @@ def get_selectors():
     
     for selector_domain in raw_results:
         selector, domain = selector_domain
+        if not selector or not domain:
+            continue
         if selector not in grouped_by_selectors:
             grouped_by_selectors[selector] = []
         grouped_by_selectors[selector].append(domain)
@@ -259,7 +268,8 @@ def get_selectors():
     grouped_by_selectors = {k: v for k, v in sorted(grouped_by_selectors.items(), key=lambda item: len(item[1]), reverse=True)}
     grouped_by_domains = {k: v for k, v in sorted(grouped_by_domains.items(), key=lambda item: len(item[1]), reverse=True)}
     
-    return render_template('selectors.html', selectors=grouped_by_selectors, domains=grouped_by_domains)
+    tsv_by_domain = dict_to_tsv(grouped_by_domains)
+    return render_template('selectors.html', selectors=grouped_by_selectors, domains=grouped_by_domains, tsv_by_domain=tsv_by_domain)
 
 if __name__ == '__main__':
     app.run('127.0.0.1', debug=True)

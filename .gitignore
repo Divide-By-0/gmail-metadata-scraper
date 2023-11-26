@@ -5,3 +5,4 @@ venv
 replit_zip*
 .DS_Store
 .breakpoints
+emails.db
