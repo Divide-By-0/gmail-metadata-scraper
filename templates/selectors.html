@@ -25,6 +25,16 @@
                 domainsView.style.display = "block";
             }
         }
+
+        function download(filename, text) {
+            var element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+            element.setAttribute('download', filename);
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
     </script>
 </head>
 <body>
@@ -35,9 +45,9 @@
         <div id="selectorsView">
             {% for result in selectors %}
             <div class="card">
-                <div class="card-header">{{ result }}</div>
+                <div class="card-header">Selector: {{ result }}</div>
                 <div class="card-body">
-                    <p>Selector: {{ selectors[result] }}</p>
+                    <p>Domains: {{ selectors[result] }}</p>
                     <button onclick="copyToClipboard('{{ result }}: {{ selectors[result] }}')">Copy</button>
                 </div>
             </div>
@@ -46,13 +56,18 @@
         <div id="domainsView" style="display: none;">
             {% for result in domains %}
             <div class="card">
-                <div class="card-header">{{ result }}</div>
+                <div class="card-header">Domain: {{ result }}</div>
                 <div class="card-body">
-                    <p>Domain: {{ domains[result] }}</p>
+                    <p>Selectors: {{ domains[result] }}</p>
                     <button onclick="copyToClipboard('{{ result }}: {{ domains[result] }}')">Copy</button>
                 </div>
             </div>
             {% endfor %}
+        </div>
+        <div id="domainsTsvView">
+            <h2>Domains TSV</h2>
+            <button onclick="download('domains_selectors.tsv', document.getElementById('tsvDataTextArea').value)">Download TSV file</button>
+            <textarea id="tsvDataTextArea" readonly rows="20" cols="100" style="font-family: monospace;">{{ tsv_by_domain }}</textarea>
         </div>
     </div>
 </body>
